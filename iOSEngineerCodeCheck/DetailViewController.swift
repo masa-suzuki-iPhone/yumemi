@@ -21,12 +21,12 @@ class DetailViewController: UIViewController {
     @IBOutlet weak var forksLabel: UILabel!
     @IBOutlet weak var issuesLabel: UILabel!
     
-    var vc1: SearchViewController!
+    var searchViewController: SearchViewController!
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        let repo = vc1.repogitories[vc1.idx]
+        let repo = searchViewController.repogitories[searchViewController.idx]
         
         languageLabel.text = "Written in \(repo["language"] as? String ?? "")"
         starsLabel.text = "\(repo["stargazers_count"] as? Int ?? 0) stars"
@@ -39,21 +39,25 @@ class DetailViewController: UIViewController {
     
     func getImage(){
         
-        let repo = vc1.repogitories[vc1.idx]
+        let repo = searchViewController.repogitories[searchViewController.idx]
         
         titleLable.text = repo["full_name"] as? String
         
-        if let owner = repo["owner"] as? [String: Any] {
-            if let imgURL = owner["avatar_url"] as? String {
-                URLSession.shared.dataTask(with: URL(string: imgURL)!) { (data, res, err) in
-                    let img = UIImage(data: data!)!
-                    DispatchQueue.main.async {
-                        self.imageView.image = img
-                    }
-                }.resume()
-            }
+        guard let owner = repo["owner"] as? [String: Any],
+              let imgURL = owner["avatar_url"] as? String
+        else{
+            return
         }
         
+        URLSession.shared.dataTask(with: URL(string: imgURL)!) { (data, res, err) in
+            let img = UIImage(data: data!)!
+            DispatchQueue.main.async {
+                self.imageView.image = img
+            }
+        }.resume()
     }
-    
 }
+
+
+
+

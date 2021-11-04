@@ -21,13 +21,13 @@ class SearchViewController: UITableViewController, UISearchBarDelegate {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view.
+        // ビューを読み込んだ後に、追加の設定を行う
         searchBar.text = "GitHubのリポジトリを検索できるよー"
         searchBar.delegate = self
     }
     
     func searchBarShouldBeginEditing(_ searchBar: UISearchBar) -> Bool {
-        // ↓こうすれば初期のテキストを消せる
+        // ↓初期のテキストを消せる
         searchBar.text = ""
         return true
     }
@@ -39,22 +39,27 @@ class SearchViewController: UITableViewController, UISearchBarDelegate {
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         
         word = searchBar.text!
-        
-        if word.count != 0 {
-            url = "https://api.github.com/search/repositories?q=\(word!)"
-            task = URLSession.shared.dataTask(with: URL(string: url)!) { (data, res, err) in
-                if let obj = try! JSONSerialization.jsonObject(with: data!) as? [String: Any] {
-                    if let items = obj["items"] as? [[String: Any]] {
-                        self.repogitories = items
-                        DispatchQueue.main.async {
-                            self.tableView.reloadData()
-                        }
-                    }
-                }
-            }
-            // これ呼ばなきゃリストが更新されません
-            task?.resume()
+        if word.count == 0 {
+            return
         }
+        
+        
+        url = "https://api.github.com/search/repositories?q=\(word!)"
+        task = URLSession.shared.dataTask(with: URL(string: url)!) { (data, res, err) in
+            guard let obj = try! JSONSerialization.jsonObject(with: data!) as? [String: Any],
+                  let items = obj["items"] as? [[String: Any]]
+            else {
+                print("bad data")
+                return
+            }
+            self.repogitories = items
+            DispatchQueue.main.async {
+                self.tableView.reloadData()
+            }
+        }
+        // リストを更新する
+        task?.resume()
+        
         
     }
     
@@ -62,7 +67,7 @@ class SearchViewController: UITableViewController, UISearchBarDelegate {
         
         if segue.identifier == "Detail"{
             let detail = segue.destination as! DetailViewController
-            detail.vc1 = self
+            detail.searchViewController = self
         }
         
     }
